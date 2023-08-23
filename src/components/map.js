@@ -19,6 +19,9 @@ map.setMaxBounds(map.getBounds());
 // eslint-disable-next-line no-undef
 const tb = (window.tb = new Threebox(map, map.getCanvas().getContext("webgl"), {
   defaultLights: true,
+  enableTooltips: true,
+  enableSelectingObjects: true,
+  realSunlight: true,
 }));
 
 map.on("style.load", () => {
@@ -77,11 +80,13 @@ map.on("style.load", () => {
         scale: { x: scale, y: scale, z: scale },
         units: "meters",
         rotation: { x: 90, y: 90, z: 0 },
+        anchor: "center",
       };
 
       // Hipódromo
       tb.loadObj(options, (model) => {
         model.setCoords([-51.243452, -30.088128]);
+        model.addEventListener("SelectedChange", onSelectedChange);
         model.setRotation({ x: 0, y: 0, z: 90 });
         tb.add(model);
       });
@@ -89,8 +94,8 @@ map.on("style.load", () => {
       // Pontal
       tb.loadObj(options, (model) => {
         model.setCoords([-51.2473, -30.0806]);
+        model.addEventListener("SelectedChange", onSelectedChange);
         model.setRotation({ x: 0, y: 0, z: 90 });
-        // model.setTranslate([-51.2477, -30.080357]);
         model.position.z += 1;
         tb.add(model);
       });
@@ -101,5 +106,22 @@ map.on("style.load", () => {
     },
   });
 });
+
+function onSelectedChange(e) {
+  //if selected
+  if (e.detail.selected) {
+    const selectedObject = e.detail;
+    console.log(selectedObject);
+
+    //we fly smoothly to the object selected
+    map.flyTo({
+      center: selectedObject.coordinates,
+      zoom: 16,
+      curve: Math.pow(6, 0.25),
+    });
+  }
+  tb.update();
+  map.repaint = true;
+}
 
 export default map;
